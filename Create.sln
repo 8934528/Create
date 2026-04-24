@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Create.Infrastructure", "ba
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Create.Shared", "backend-dotnet\Create.Shared\Create.Shared.csproj", "{B08C6B0B-98D2-47DA-A4F0-948A32D668A1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "frontend-web", "frontend-web\frontend-web.csproj", "{BA0664BA-FC65-4B3D-8977-02AD5EE54914}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -44,6 +46,10 @@ Global
 		{B08C6B0B-98D2-47DA-A4F0-948A32D668A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B08C6B0B-98D2-47DA-A4F0-948A32D668A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B08C6B0B-98D2-47DA-A4F0-948A32D668A1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BA0664BA-FC65-4B3D-8977-02AD5EE54914}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA0664BA-FC65-4B3D-8977-02AD5EE54914}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA0664BA-FC65-4B3D-8977-02AD5EE54914}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA0664BA-FC65-4B3D-8977-02AD5EE54914}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{85C71DA9-852F-46E1-9228-83AA7A15C02F} = {A22B1A09-31AA-4934-B7BD-B89A65E3E35A}
