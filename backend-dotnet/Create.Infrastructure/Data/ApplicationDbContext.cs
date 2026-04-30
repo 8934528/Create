@@ -10,35 +10,75 @@ namespace Create.Infrastructure.Data
         }
 
         public DbSet<User> Users { get; set; } = null!;
-        public DbSet<FaceEmbedding> Faces { get; set; } = null!;
-        public DbSet<AttendanceRecord> AttendanceRecords { get; set; } = null!;
+        public DbSet<Face> Faces { get; set; } = null!;
+        public DbSet<Event> Events { get; set; } = null!;
+        public DbSet<Attendance> Attendance { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
+            modelBuilder.HasPostgresExtension("uuid-ossp");
+            modelBuilder.HasPostgresExtension("vector");
+
             modelBuilder.Entity<User>(entity =>
             {
+                entity.ToTable("users");
                 entity.HasKey(e => e.Id);
-                entity.HasIndex(e => e.Username).IsUnique();
+                entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("uuid_generate_v4()");
+                entity.Property(e => e.FullName).HasColumnName("full_name").IsRequired().HasMaxLength(150);
+                entity.Property(e => e.Email).HasColumnName("email").IsRequired().HasMaxLength(150);
+                entity.HasIndex(e => e.Email).IsUnique();
+                entity.Property(e => e.PasswordHash).HasColumnName("password_hash").IsRequired();
+                entity.Property(e => e.Role).HasColumnName("role").IsRequired().HasMaxLength(50);
+                entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("CURRENT_TIMESTAMP");
             });
 
-            modelBuilder.Entity<FaceEmbedding>(entity =>
+            modelBuilder.Entity<Face>(entity =>
             {
+                entity.ToTable("faces");
                 entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("uuid_generate_v4()");
+                entity.Property(e => e.UserId).HasColumnName("user_id");
+                entity.Property(e => e.Embedding).HasColumnName("embedding").HasColumnType("vector(128)");
+                entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("CURRENT_TIMESTAMP");
+
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.Faces)
                     .HasForeignKey(d => d.UserId)
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
-            modelBuilder.Entity<AttendanceRecord>(entity =>
+            modelBuilder.Entity<Event>(entity =>
             {
+                entity.ToTable("events");
                 entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("uuid_generate_v4()");
+                entity.Property(e => e.Name).HasColumnName("name").HasMaxLength(150);
+                entity.Property(e => e.Location).HasColumnName("location").HasMaxLength(150);
+                entity.Property(e => e.StartTime).HasColumnName("start_time");
+                entity.Property(e => e.EndTime).HasColumnName("end_time");
+            });
+
+            modelBuilder.Entity<Attendance>(entity =>
+            {
+                entity.ToTable("attendance");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("uuid_generate_v4()");
+                entity.Property(e => e.UserId).HasColumnName("user_id");
+                entity.Property(e => e.EventId).HasColumnName("event_id");
+                entity.Property(e => e.CheckInTime).HasColumnName("check_in_time").HasDefaultValueSql("CURRENT_TIMESTAMP");
+                entity.Property(e => e.Status).HasColumnName("status").HasMaxLength(50);
+
                 entity.HasOne(d => d.User)
-                    .WithMany(p => p.AttendanceRecords)
+                    .WithMany()
                     .HasForeignKey(d => d.UserId)
-                    .OnDelete(DeleteBehavior.Cascade);
+                    .OnDelete(DeleteBehavior.SetNull);
+
+                entity.HasOne(d => d.Event)
+                    .WithMany(p => p.Attendances)
+                    .HasForeignKey(d => d.EventId)
+                    .OnDelete(DeleteBehavior.SetNull);
             });
         }
     }

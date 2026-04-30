@@ -5,14 +5,13 @@ namespace Create.Domain.Entities
 {
     public class User
     {
-        public Guid Id { get; set; } = Guid.NewGuid();
-        public string Username { get; set; } = string.Empty;
+        public Guid Id { get; set; }
+        public string FullName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
         public string PasswordHash { get; set; } = string.Empty;
-        public string? FullName { get; set; }
-        public string Role { get; set; } = "Employee";
+        public string Role { get; set; } = string.Empty; // student, employee, attendee
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        public ICollection<FaceEmbedding> Faces { get; set; } = new List<FaceEmbedding>();
-        public ICollection<AttendanceRecord> AttendanceRecords { get; set; } = new List<AttendanceRecord>();
+        public ICollection<Face> Faces { get; set; } = new List<Face>();
     }
 }

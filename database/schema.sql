@@ -1,25 +1,40 @@
--- Database Schema for Face Recognition Attendance System
+-- Enable Extensions
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS vector;
 
-CREATE TABLE IF NOT EXISTS Users (
-    Id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    Username VARCHAR(100) UNIQUE NOT NULL,
-    PasswordHash TEXT NOT NULL,
-    FullName VARCHAR(200),
-    Role VARCHAR(50) DEFAULT 'Employee',
-    CreatedAt TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+-- USERS
+CREATE TABLE users (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    full_name VARCHAR(150) NOT NULL,
+    email VARCHAR(150) UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    role VARCHAR(50) NOT NULL, -- student, employee, attendee
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS Faces (
-    Id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    UserId UUID NOT NULL REFERENCES Users(Id) ON DELETE CASCADE,
-    Embedding JSONB NOT NULL, -- Storing as JSONB array for flexibility
-    CreatedAt TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+-- FACE DATA (Embeddings)
+CREATE TABLE faces (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    embedding VECTOR(128), -- pgvector enabled
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS Attendance (
-    Id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    UserId UUID NOT NULL REFERENCES Users(Id) ON DELETE CASCADE,
-    Timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    Type VARCHAR(20) NOT NULL, -- 'CheckIn', 'CheckOut'
-    Location VARCHAR(255)
+-- EVENTS / SESSIONS
+CREATE TABLE events (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(150),
+    location VARCHAR(150),
+    start_time TIMESTAMP,
+    end_time TIMESTAMP
 );
+
+-- ATTENDANCE
+CREATE TABLE attendance (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES users(id),
+    event_id UUID REFERENCES events(id),
+    check_in_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status VARCHAR(50) -- present / late / denied
+);
+

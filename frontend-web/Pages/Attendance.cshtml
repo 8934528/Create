@@ -1,32 +1,38 @@
 @page
 @model frontend_web.Pages.AttendanceModel
 @{
-    ViewData["Title"] = "Face Attendance";
+    ViewData["Title"] = "Real-Time Face Attendance";
 }
 
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-8">
-            <div class="card shadow-lg border-0 rounded-lg">
-                <div class="card-header bg-primary text-white text-center py-4">
-                    <h2 class="font-weight-light my-1">Face Recognition Attendance</h2>
+            <div class="card shadow-lg border-0 rounded-lg overflow-hidden">
+                <div class="card-header bg-dark text-white text-center py-4">
+                    <h2 class="font-weight-light my-1">Real-Time Face Scanning</h2>
                 </div>
-                <div class="card-body">
-                    <div id="camera-container" class="text-center mb-4">
-                        <video id="video" width="100%" height="auto" autoplay muted class="rounded shadow-sm"></video>
+                <div class="card-body bg-light">
+                    <div id="camera-container" class="position-relative text-center mb-4">
+                        <video id="video" width="100%" height="auto" autoplay muted class="rounded shadow-sm border border-secondary"></video>
                         <canvas id="canvas" style="display:none;"></canvas>
+                        <div id="scan-overlay" class="position-absolute top-50 start-50 translate-middle w-75 h-75 border border-primary border-3 rounded-3 opacity-50" style="pointer-events: none; border-style: dashed !important;"></div>
                     </div>
-                    
+
                     <div id="status-container" class="alert alert-info text-center" role="alert">
-                        Ready to check attendance. Please look at the camera.
+                        Initializing camera...
+                    </div>
+
+                    <!-- SignalR connection indicator -->
+                    <div id="signalr-badge" class="text-center mb-2">
+                        <span class="badge bg-secondary" id="signalr-status">⚡ Connecting to live feed...</span>
                     </div>
 
                     <div class="d-grid gap-2 d-md-flex justify-content-md-center">
-                        <button id="btn-check" class="btn btn-success btn-lg px-5">Check In / Out</button>
+                        <button id="btn-manual" class="btn btn-primary btn-lg px-5" onclick="captureManual()">Manual Scan</button>
                     </div>
                 </div>
-                <div class="card-footer text-center py-3">
-                    <div class="small">Position your face clearly within the frame.</div>
+                <div class="card-footer text-muted text-center py-3">
+                    <div class="small">Position your face within the dashed box for automatic detection.</div>
                 </div>
             </div>
         </div>
@@ -34,63 +40,131 @@
 </div>
 
 @section Scripts {
-    <script>
-        const video = document.getElementById('video');
-        const canvas = document.getElementById('canvas');
-        const btnCheck = document.getElementById('btn-check');
-        const statusContainer = document.getElementById('status-container');
+    <!-- SignalR client library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"
+            integrity="sha512-3oFKFJAtd6qBCmMfQWpjT/sTBFDjFONF1iCkQn8U1MnqFHtBbFKM3zHBBf4E5BEu9MtfZWxYdJlqWJE6PVGQ=="
+            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
-        // Access camera
+    <script>
+        const video = document.getElementById("video");
+        const canvas = document.getElementById("canvas");
+        const statusContainer = document.getElementById("status-container");
+        const signalrStatus = document.getElementById("signalr-status");
+
+        const EVENT_ID = "@(ViewData["EventId"] ?? "00000000-0000-0000-0000-000000000000")";
+        const API_BASE = "http://localhost:5242"; // Adjust to your backend port
+
+        let prevImage = null;
+        let scanning = false;
+
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl(`${API_BASE}/attendanceHub`, {
+                withCredentials: true
+            })
+            .withAutomaticReconnect()
+            .configureLogging(signalR.LogLevel.Warning)
+            .build();
+
+        connection.on("ReceiveStatus", message => {
+            const isSuccess = message.startsWith("✅");
+            const isWarning = message.startsWith("ℹ️") || message.startsWith("⚠️");
+            const isError   = message.startsWith("❌");
+
+            statusContainer.className = isSuccess ? "alert alert-success"
+                                      : isWarning ? "alert alert-warning"
+                                      : isError   ? "alert alert-danger"
+                                      :             "alert alert-info";
+            statusContainer.innerText = message;
+        });
+
+        connection.onreconnecting(() => {
+            signalrStatus.className = "badge bg-warning text-dark";
+            signalrStatus.innerText = "⚡ Reconnecting...";
+        });
+
+        connection.onreconnected(() => {
+            signalrStatus.className = "badge bg-success";
+            signalrStatus.innerText = "⚡ Live";
+        });
+
+        connection.onclose(() => {
+            signalrStatus.className = "badge bg-danger";
+            signalrStatus.innerText = "⚡ Disconnected";
+        });
+
+        connection.start()
+            .then(() => {
+                signalrStatus.className = "badge bg-success";
+                signalrStatus.innerText = "⚡ Live";
+                console.log("SignalR connected to /attendanceHub");
+            })
+            .catch(err => {
+                signalrStatus.className = "badge bg-danger";
+                signalrStatus.innerText = "⚡ Offline (no live feed)";
+                console.warn("SignalR connection failed — falling back to fetch-only mode:", err);
+            });
+
         navigator.mediaDevices.getUserMedia({ video: true })
             .then(stream => {
                 video.srcObject = stream;
+                statusContainer.className = "alert alert-success";
+                statusContainer.innerText = "Camera Active — Scanning...";
+
+                // Auto-scan every 1 second
+                setInterval(captureFrame, 1000);
             })
             .catch(err => {
-                console.error("Error accessing camera:", err);
+                console.error("Camera error:", err);
                 statusContainer.className = "alert alert-danger";
-                statusContainer.innerText = "Error: Could not access camera.";
+                statusContainer.innerText = "Error: Could not access camera. Please allow camera access.";
             });
 
-        btnCheck.addEventListener('click', async () => {
-            statusContainer.className = "alert alert-warning";
-            statusContainer.innerText = "Processing... Please wait.";
-            btnCheck.disabled = true;
-
-            // Capture frame
-            const context = canvas.getContext('2d');
+        function getFrameBase64() {
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
-            const imageData = canvas.toDataURL('image/jpeg');
+            if (canvas.width === 0 || canvas.height === 0) return null;
+            canvas.getContext("2d").drawImage(video, 0, 0);
+            return canvas.toDataURL("image/jpeg");
+        }
 
+        async function captureFrame() {
+            if (scanning) return;
+            const image = getFrameBase64();
+            if (!image) return;
+            await sendScan(image);
+        }
+
+        async function captureManual() {
+            const image = getFrameBase64();
+            if (!image) return;
+            await sendScan(image);
+        }
+
+        async function sendScan(image) {
+            scanning = true;
             try {
-                const response = await fetch('http://localhost:5010/api/attendance/verify-attendance', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        imageBase64: imageData,
-                        type: "CheckIn" // Could be dynamic
-                    })
+                const payload = {
+                    image: image,
+                    prevImage: prevImage,
+                    eventId: EVENT_ID
+                };
+
+                // send the scan
+                await fetch(`${API_BASE}/api/attendance/scan`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
                 });
 
-                const result = await response.json();
-
-                if (response.ok) {
-                    statusContainer.className = "alert alert-success";
-                    statusContainer.innerText = "Success: " + result.message;
-                } else {
-                    statusContainer.className = "alert alert-danger";
-                    statusContainer.innerText = "Error: " + (result.message || "Face not recognized");
-                }
             } catch (err) {
-                console.error("Error verifying attendance:", err);
+                console.error("Scan error:", err);
+                // Fallback
                 statusContainer.className = "alert alert-danger";
-                statusContainer.innerText = "Error: Connection to backend failed.";
+                statusContainer.innerText = "Error: Could not reach server.";
             } finally {
-                btnCheck.disabled = false;
+                prevImage = getFrameBase64();
+                scanning = false;
             }
-        });
+        }
     </script>
 }

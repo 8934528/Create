@@ -1,122 +1,190 @@
+using Create.Application.DTOs;
+using Create.Application.Services;
+using Create.API.Hubs;
 using Create.Domain.Entities;
 using Create.Infrastructure.Data;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using System.Text.Json;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Create.API.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/attendance")]
     public class AttendanceController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
-        private readonly IConfiguration _configuration;
-        private readonly HttpClient _httpClient;
+        private readonly FaceService _faceService;
+        private readonly FaceCacheService _cache;
+        private readonly ApplicationDbContext _db;
+        private readonly IHubContext<AttendanceHub> _hub;
 
-        public AttendanceController(ApplicationDbContext context, IConfiguration configuration)
+        public AttendanceController(
+            FaceService faceService,
+            FaceCacheService cache,
+            ApplicationDbContext db,
+            IHubContext<AttendanceHub> hub)
         {
-            _context = context;
-            _configuration = configuration;
-            _httpClient = new HttpClient();
+            _faceService = faceService;
+            _cache = cache;
+            _db = db;
+            _hub = hub;
         }
 
-        [HttpPost("register-face")]
-        [Authorize]
-        public async Task<IActionResult> RegisterFace([FromBody] FaceRegistrationRequest request)
+        // POST /api/attendance/scan
+        [HttpPost("scan")]
+        public async Task<IActionResult> Scan([FromBody] ScanDto dto)
         {
-            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId)) return Unauthorized();
-
-            // 1. Send image to AI Service to get embedding
-            var aiServiceUrl = _configuration["AiService:Url"] ?? "http://localhost:8000";
-            var response = await _httpClient.PostAsJsonAsync($"{aiServiceUrl}/extract-embedding", new { image_base64 = request.ImageBase64 });
-
-            if (!response.IsSuccessStatusCode)
+            try
             {
-                return BadRequest("Failed to extract face embedding");
-            }
+                var faces = _cache.GetAll();
 
-            var result = await response.Content.ReadFromJsonAsync<EmbeddingResponse>();
-            if (result == null) return BadRequest("Invalid response from AI service");
-
-            // 2. Save embedding to DB
-            var faceEmbedding = new FaceEmbedding
-            {
-                UserId = Guid.Parse(userId),
-                Embedding = JsonSerializer.Serialize(result.Embedding)
-            };
-
-            _context.Faces.Add(faceEmbedding);
-            await _context.SaveChangesAsync();
-
-            return Ok(new { message = "Face registered successfully" });
-        }
-
-        [HttpPost("verify-attendance")]
-        public async Task<IActionResult> VerifyAttendance([FromBody] AttendanceVerificationRequest request)
-        {
-            // 1. Check anti-spoofing first
-            var aiServiceUrl = _configuration["AiService:Url"] ?? "http://localhost:8000";
-            var spoofResponse = await _httpClient.PostAsJsonAsync($"{aiServiceUrl}/check-spoof", new { image_base64 = request.ImageBase64 });
-            
-            if (spoofResponse.IsSuccessStatusCode)
-            {
-                var spoofResult = await spoofResponse.Content.ReadFromJsonAsync<SpoofResult>();
-                if (spoofResult != null && !spoofResult.IsReal)
+                if (faces.Count == 0)
                 {
-                    return BadRequest(new { message = "Anti-spoofing check failed", detail = spoofResult.Message });
+                    await _hub.Clients.All.SendAsync("ReceiveStatus",
+                        "No registered faces in system.");
+                    return Ok(new { success = false, message = "No registered faces in system" });
                 }
-            }
 
-            // 2. Get embedding for the current face
-            var embeddingResponse = await _httpClient.PostAsJsonAsync($"{aiServiceUrl}/extract-embedding", new { image_base64 = request.ImageBase64 });
-            if (!embeddingResponse.IsSuccessStatusCode) return BadRequest("Could not detect face");
+                var result = await _faceService.VerifyFace(dto.Image, faces, dto.PrevImage);
 
-            var currentEmbeddingResult = await embeddingResponse.Content.ReadFromJsonAsync<EmbeddingResponse>();
-            if (currentEmbeddingResult == null) return BadRequest();
-
-            // 3. Find matching user in DB
-            // (Simple linear search for now, could be optimized with pgvector)
-            var allFaces = await _context.Faces.Include(f => f.User).ToListAsync();
-            foreach (var face in allFaces)
-            {
-                var storedEmbedding = JsonSerializer.Deserialize<float[]>(face.Embedding);
-                if (storedEmbedding != null && CosineSimilarity(currentEmbeddingResult.Embedding, storedEmbedding) > 0.85) // Threshold
+                if (!result.match || string.IsNullOrEmpty(result.userId))
                 {
-                    // Match found!
-                    var attendance = new AttendanceRecord
-                    {
-                        UserId = face.UserId,
-                        Type = request.Type ?? "CheckIn",
-                        Timestamp = DateTime.UtcNow
-                    };
-                    _context.AttendanceRecords.Add(attendance);
-                    await _context.SaveChangesAsync();
-
-                    return Ok(new { message = $"Attendance marked for {face.User.FullName}", user = face.User.Username });
+                    var msg = result.error ?? "Face not recognized";
+                    await _hub.Clients.All.SendAsync("ReceiveStatus", $"⚠️ {msg}");
+                    return Ok(new { success = false, message = msg });
                 }
-            }
 
-            return NotFound("Face not recognized");
+                if (!Guid.TryParse(result.userId, out var userId))
+                {
+                    await _hub.Clients.All.SendAsync("ReceiveStatus",
+                        "Invalid user ID from AI service.");
+                    return Ok(new { success = false, message = "Invalid user ID from AI service" });
+                }
+
+                var today = DateTime.UtcNow.Date;
+                var alreadyCheckedIn = await _db.Attendance.AnyAsync(a =>
+                    a.UserId == userId &&
+                    a.EventId == dto.EventId &&
+                    a.CheckInTime.Date == today
+                );
+
+                if (alreadyCheckedIn)
+                {
+                    await _hub.Clients.All.SendAsync("ReceiveStatus",
+                        "ℹAlready checked in for this event today.");
+                    return Ok(new { success = false, message = "Already checked in for this event today" });
+                }
+
+                // Log attendance
+                var attendance = new Attendance
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = userId,
+                    EventId = dto.EventId,
+                    Status = "present",
+                    CheckInTime = DateTime.UtcNow
+                };
+
+                _db.Attendance.Add(attendance);
+                await _db.SaveChangesAsync();
+
+                // Fetch user name 
+                var user = await _db.Users.FindAsync(userId);
+                var fullName = user?.FullName ?? "Unknown";
+
+                await _hub.Clients.All.SendAsync("ReceiveStatus",
+                    $"Welcome, {fullName}! Attendance recorded.");
+
+                return Ok(new
+                {
+                    success = true,
+                    userId = userId,
+                    fullName = fullName,
+                    message = "Attendance marked successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                await _hub.Clients.All.SendAsync("ReceiveStatus",
+                    $"Server error: {ex.Message}");
+                return StatusCode(500, $"Error processing scan: {ex.Message}");
+            }
         }
 
-        private double CosineSimilarity(float[] V1, float[] V2)
+        private async Task<Guid?> FindNearestUserAsync(float[] embedding, float maxDistance = 0.6f)
         {
-            double dot = 0.0, mag1 = 0.0, mag2 = 0.0;
-            for (int i = 0; i < V1.Length; i++)
+            var vectorLiteral = "[" + string.Join(",",
+                embedding.Select(v => v.ToString("G", System.Globalization.CultureInfo.InvariantCulture))) + "]";
+
+            var sql = $@"
+                SELECT id, user_id, embedding, created_at
+                FROM faces
+                ORDER BY embedding <-> '{vectorLiteral}'::vector
+                LIMIT 1";
+
+            var match = await _db.Faces
+                .FromSqlRaw(sql)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+
+            if (match == null) return null;
+
+            var distance = EuclideanDistance(embedding, match.Embedding);
+            return distance <= maxDistance ? match.UserId : null;
+        }
+
+        private static float EuclideanDistance(float[] a, float[] b)
+        {
+            if (a.Length != b.Length) return float.MaxValue;
+            float sum = 0f;
+            for (int i = 0; i < a.Length; i++) { float d = a[i] - b[i]; sum += d * d; }
+            return MathF.Sqrt(sum);
+        }
+
+        // GET /api/attendance/report  — Admin dashboard analytics
+        [HttpGet("report")]
+        public async Task<IActionResult> GetReport()
+        {
+            var totalUsers = await _db.Users.CountAsync();
+            var totalAttendance = await _db.Attendance.CountAsync();
+
+            var today = DateTime.UtcNow.Date;
+            var todayAttendance = await _db.Attendance
+                .Where(a => a.CheckInTime.Date == today)
+                .CountAsync();
+
+            // Last 7 days trend
+            var since = today.AddDays(-6);
+            var last7Days = await _db.Attendance
+                .Where(a => a.CheckInTime.Date >= since)
+                .GroupBy(a => a.CheckInTime.Date)
+                .Select(g => new
+                {
+                    date = g.Key.ToString("yyyy-MM-dd"),
+                    count = g.Count()
+                })
+                .OrderBy(x => x.date)
+                .ToListAsync();
+
+            var fullWeek = Enumerable.Range(0, 7)
+                .Select(i => today.AddDays(-6 + i).ToString("yyyy-MM-dd"))
+                .Select(d => new
+                {
+                    date = d,
+                    count = last7Days.FirstOrDefault(x => x.date == d)?.count ?? 0
+                })
+                .ToList();
+
+            return Ok(new
             {
-                dot += V1[i] * V2[i];
-                mag1 += Math.Pow(V1[i], 2);
-                mag2 += Math.Pow(V2[i], 2);
-            }
-            return dot / (Math.Sqrt(mag1) * Math.Sqrt(mag2));
+                totalUsers,
+                totalAttendance,
+                todayAttendance,
+                last7Days = fullWeek
+            });
         }
     }
-
-    public class FaceRegistrationRequest { public string ImageBase64 { get; set; } = string.Empty; }
-    public class AttendanceVerificationRequest { public string ImageBase64 { get; set; } = string.Empty; public string? Type { get; set; } }
-    public class EmbeddingResponse { public float[] Embedding { get; set; } = Array.Empty<float>(); }
-    public class SpoofResult { public bool IsReal { get; set; } public string Message { get; set; } = string.Empty; }
 }

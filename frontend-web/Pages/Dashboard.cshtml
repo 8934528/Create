@@ -1,0 +1,355 @@
+@page
+@model frontend_web.Pages.DashboardModel
+@{
+    ViewData["Title"] = "Admin Dashboard — Attendance Analytics";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard — CREATE</title>
+    <meta name="description" content="Analytics dashboard." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #0a0f1e;
+            --surface: rgba(255,255,255,0.05);
+            --border: rgba(255,255,255,0.08);
+            --accent: #6c63ff;
+            --accent2: #00d4aa;
+            --accent3: #ff6b6b;
+            --text: #e2e8f0;
+            --muted: #64748b;
+            --card-radius: 16px;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            background-image:
+                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(108, 99, 255, 0.15), transparent),
+                radial-gradient(ellipse 60% 40% at 80% 80%, rgba(0, 212, 170, 0.08), transparent);
+        }
+
+        .dashboard-header {
+            padding: 2rem 2.5rem 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .dashboard-header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #6c63ff, #00d4aa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-meta {
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+
+        .live-dot {
+            display: inline-block;
+            width: 8px; height: 8px;
+            background: var(--accent2);
+            border-radius: 50%;
+            margin-right: 6px;
+            animation: pulse 1.6s ease-in-out infinite;
+        }
+
+        @@keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50%       { opacity: 0.4; transform: scale(1.4); }
+        }
+
+        .dashboard-body {
+            padding: 2rem 2.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--card-radius);
+            padding: 1.75rem;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(12px);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(108, 99, 255, 0.15);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(108,99,255,0.06), transparent 60%);
+            border-radius: inherit;
+            pointer-events: none;
+        }
+
+        .stat-icon {
+            font-size: 2rem;
+            margin-bottom: 0.75rem;
+            display: block;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: 0.35rem;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .stat-card.purple .stat-value { color: #6c63ff; }
+        .stat-card.teal   .stat-value { color: #00d4aa; }
+        .stat-card.coral  .stat-value { color: #ff6b6b; }
+
+        /* ── Chart card ──────────────────────────────────────────────────── */
+        .chart-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--card-radius);
+            padding: 2rem;
+            backdrop-filter: blur(12px);
+        }
+
+        .chart-card h2 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 300px;
+        }
+
+        .loading-text {
+            color: var(--muted);
+            font-size: 0.85rem;
+            animation: shimmer 1.5s ease-in-out infinite alternate;
+        }
+
+        @@keyframes shimmer {
+            from { opacity: 0.4; }
+            to   { opacity: 1; }
+        }
+
+        .skeleton {
+            background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);
+            background-size: 200% 100%;
+            animation: skeleton-sweep 1.5s infinite;
+            border-radius: 6px;
+            height: 2.5rem;
+            width: 80px;
+        }
+
+        @@keyframes skeleton-sweep {
+            0%   { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: color 0.2s;
+        }
+        .back-link:hover { color: var(--accent); }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="dashboard-header">
+        <div>
+            <a href="/Attendance" class="back-link">← Back to Scanner</a>
+            <h1 style="margin-top:0.5rem;">CREATE Analytics</h1>
+        </div>
+        <div class="header-meta">
+            <span class="live-dot"></span>
+            <span id="last-updated">Loading...</span>
+        </div>
+    </header>
+
+    <main class="dashboard-body">
+
+        <!-- Stat Cards -->
+        <div class="stat-grid">
+            <div class="stat-card purple">
+                <span class="stat-icon">👤</span>
+                <div class="stat-value" id="stat-users"><div class="skeleton"></div></div>
+                <div class="stat-label">Registered Users</div>
+            </div>
+            <div class="stat-card teal">
+                <span class="stat-icon">📋</span>
+                <div class="stat-value" id="stat-total"><div class="skeleton"></div></div>
+                <div class="stat-label">Total Check-ins</div>
+            </div>
+            <div class="stat-card coral">
+                <span class="stat-icon">📅</span>
+                <div class="stat-value" id="stat-today"><div class="skeleton"></div></div>
+                <div class="stat-label">Today's Check-ins</div>
+            </div>
+        </div>
+
+        <!-- 7-Day Trend Chart -->
+        <div class="chart-card">
+            <h2>📈 7-Day Attendance Trend</h2>
+            <div class="chart-wrapper">
+                <canvas id="attendanceChart"></canvas>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    <script>
+        const API_BASE = "http://localhost:5242";
+
+        let chartInstance = null;
+
+        function formatDate(dateStr) {
+            const d = new Date(dateStr + "T00:00:00");
+            return d.toLocaleDateString("en-ZA", { weekday: "short", month: "short", day: "numeric" });
+        }
+
+        async function loadDashboard() {
+            try {
+                const res = await fetch(`${API_BASE}/api/attendance/report`);
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const data = await res.json();
+
+                document.getElementById("stat-users").innerText = data.totalUsers.toLocaleString();
+                document.getElementById("stat-total").innerText = data.totalAttendance.toLocaleString();
+                document.getElementById("stat-today").innerText = data.todayAttendance.toLocaleString();
+
+                document.getElementById("last-updated").innerText =
+                    "Updated " + new Date().toLocaleTimeString();
+
+                const labels = data.last7Days.map(d => formatDate(d.date));
+                const counts = data.last7Days.map(d => d.count);
+
+                const ctx = document.getElementById("attendanceChart").getContext("2d");
+
+                if (chartInstance) chartInstance.destroy();
+
+                chartInstance = new Chart(ctx, {
+                    type: "bar",
+                    data: {
+                        labels,
+                        datasets: [{
+                            label: "Check-ins",
+                            data: counts,
+                            backgroundColor: counts.map((_, i) =>
+                                i === counts.length - 1
+                                    ? "rgba(0, 212, 170, 0.85)"
+                                    : "rgba(108, 99, 255, 0.6)"
+                            ),
+                            borderColor: counts.map((_, i) =>
+                                i === counts.length - 1
+                                    ? "rgba(0, 212, 170, 1)"
+                                    : "rgba(108, 99, 255, 1)"
+                            ),
+                            borderWidth: 1.5,
+                            borderRadius: 6,
+                            borderSkipped: false,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: "rgba(10,15,30,0.95)",
+                                titleColor: "#e2e8f0",
+                                bodyColor: "#94a3b8",
+                                borderColor: "rgba(255,255,255,0.08)",
+                                borderWidth: 1,
+                                padding: 12,
+                                callbacks: {
+                                    label: ctx => ` ${ctx.parsed.y} check-in${ctx.parsed.y !== 1 ? "s" : ""}`
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: { color: "rgba(255,255,255,0.04)" },
+                                ticks: { color: "#64748b", font: { family: "Inter", size: 11 } },
+                                border: { color: "rgba(255,255,255,0.06)" }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: "rgba(255,255,255,0.04)" },
+                                ticks: {
+                                    color: "#64748b",
+                                    font: { family: "Inter", size: 11 },
+                                    stepSize: 1,
+                                    precision: 0
+                                },
+                                border: { color: "rgba(255,255,255,0.06)" }
+                            }
+                        },
+                        animation: {
+                            duration: 600,
+                            easing: "easeOutQuart"
+                        }
+                    }
+                });
+
+            } catch (err) {
+                console.error("Dashboard load error:", err);
+                document.getElementById("stat-users").innerText = "—";
+                document.getElementById("stat-total").innerText = "—";
+                document.getElementById("stat-today").innerText = "—";
+                document.getElementById("last-updated").innerText = "Failed to load";
+            }
+        }
+
+        // Initial load + auto-refresh every 30 seconds
+        loadDashboard();
+        setInterval(loadDashboard, 30_000);
+    </script>
+
+</body>
+</html>
