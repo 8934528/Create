@@ -1,0 +1,96 @@
+@page
+@model frontend_web.Pages.AttendanceModel
+@{
+    ViewData["Title"] = "Face Attendance";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg border-0 rounded-lg">
+                <div class="card-header bg-primary text-white text-center py-4">
+                    <h2 class="font-weight-light my-1">Face Recognition Attendance</h2>
+                </div>
+                <div class="card-body">
+                    <div id="camera-container" class="text-center mb-4">
+                        <video id="video" width="100%" height="auto" autoplay muted class="rounded shadow-sm"></video>
+                        <canvas id="canvas" style="display:none;"></canvas>
+                    </div>
+                    
+                    <div id="status-container" class="alert alert-info text-center" role="alert">
+                        Ready to check attendance. Please look at the camera.
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                        <button id="btn-check" class="btn btn-success btn-lg px-5">Check In / Out</button>
+                    </div>
+                </div>
+                <div class="card-footer text-center py-3">
+                    <div class="small">Position your face clearly within the frame.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const btnCheck = document.getElementById('btn-check');
+        const statusContainer = document.getElementById('status-container');
+
+        // Access camera
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                video.srcObject = stream;
+            })
+            .catch(err => {
+                console.error("Error accessing camera:", err);
+                statusContainer.className = "alert alert-danger";
+                statusContainer.innerText = "Error: Could not access camera.";
+            });
+
+        btnCheck.addEventListener('click', async () => {
+            statusContainer.className = "alert alert-warning";
+            statusContainer.innerText = "Processing... Please wait.";
+            btnCheck.disabled = true;
+
+            // Capture frame
+            const context = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imageData = canvas.toDataURL('image/jpeg');
+
+            try {
+                const response = await fetch('http://localhost:5010/api/attendance/verify-attendance', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        imageBase64: imageData,
+                        type: "CheckIn" // Could be dynamic
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    statusContainer.className = "alert alert-success";
+                    statusContainer.innerText = "Success: " + result.message;
+                } else {
+                    statusContainer.className = "alert alert-danger";
+                    statusContainer.innerText = "Error: " + (result.message || "Face not recognized");
+                }
+            } catch (err) {
+                console.error("Error verifying attendance:", err);
+                statusContainer.className = "alert alert-danger";
+                statusContainer.innerText = "Error: Connection to backend failed.";
+            } finally {
+                btnCheck.disabled = false;
+            }
+        });
+    </script>
+}

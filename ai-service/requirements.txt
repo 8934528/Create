@@ -15,3 +15,6 @@ uvicorn
 opencv-python 
 deepface 
 numpy
+tf-keras
+python-dotenv
+requests
