@@ -1,3 +1,4 @@
+using Create.API.Data;
 using Create.API.Hubs;
 using Pgvector.EntityFrameworkCore;
 using Create.Application.Services;
@@ -30,7 +31,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(dataSource, o => o.UseVector()));
 
 // JWT Authentication
-var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]);
+var jwtKey = builder.Configuration["Jwt:Key"] ?? "super_secret_key_that_is_at_least_32_chars";
+var key = Encoding.ASCII.GetBytes(jwtKey);
 
 builder.Services.AddAuthentication(options =>
 {
@@ -59,12 +61,10 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowFrontend", policy =>
         policy
             .WithOrigins(
-                "http://localhost:5000",
-                "https://localhost:5001",
+                "http://localhost:5200", // Standard frontend port
+                "http://localhost:3000",
                 "http://localhost:5148",
-                "https://localhost:7148",
-                "http://localhost:5242",
-                "https://localhost:7242"
+                "http://localhost:5242"
             )
             .AllowAnyMethod()
             .AllowAnyHeader()
@@ -73,14 +73,24 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Load face embeddings into memory cache on startup
+// Initialization scope
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    await db.Database.MigrateAsync();
-    
-    var cache = scope.ServiceProvider.GetRequiredService<IFaceCacheService>();
-    await cache.LoadAsync();
+    var services = scope.ServiceProvider;
+    try
+    {
+        // Run seeding and migrations
+        await SeedData.Initialize(services);
+        
+        // Load face embeddings into memory cache
+        var cache = services.GetRequiredService<IFaceCacheService>();
+        await cache.LoadAsync();
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while seeding or initializing the application.");
+    }
 }
 
 // Configure the HTTP request pipeline.

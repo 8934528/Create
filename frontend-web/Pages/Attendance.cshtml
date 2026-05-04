@@ -7,43 +7,92 @@
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-8">
-            <div class="card shadow-lg border-0 rounded-lg overflow-hidden">
-                <div class="card-header bg-dark text-white text-center py-4">
-                    <h2 class="font-weight-light my-1">Real-Time Face Scanning</h2>
+            <div class="card shadow-lg border-0 rounded-lg overflow-hidden" style="background: var(--surface); border: 1px solid var(--border) !important; backdrop-filter: blur(12px);">
+                <div class="card-header border-0 text-center py-4" style="background: rgba(255,255,255,0.03);">
+                    <h2 class="fw-bold my-1" style="background: linear-gradient(135deg, #fff 0%, #94a3b8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                        Live Face Scanner
+                    </h2>
+                    <div id="signalr-badge" class="text-center mt-2">
+                        <span class="badge" id="signalr-status" style="background: var(--border); color: var(--muted); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em;">
+                            Initializing...
+                        </span>
+                    </div>
                 </div>
-                <div class="card-body bg-light">
-                    <div id="camera-container" class="position-relative text-center mb-4">
-                        <video id="video" width="100%" height="auto" autoplay muted class="rounded shadow-sm border border-secondary"></video>
+                <div class="card-body p-4">
+                    <div id="camera-container" class="position-relative text-center mb-4 mx-auto" style="max-width: 640px;">
+                        <video id="video" width="100%" height="auto" autoplay muted class="rounded-4 shadow-lg border-0" style="background: #000; transform: scaleX(-1);"></video>
                         <canvas id="canvas" style="display:none;"></canvas>
-                        <div id="scan-overlay" class="position-absolute top-50 start-50 translate-middle w-75 h-75 border border-primary border-3 rounded-3 opacity-50" style="pointer-events: none; border-style: dashed !important;"></div>
+                        
+                        <!-- Scanner Overlay -->
+                        <div id="scan-overlay" class="position-absolute top-50 start-50 translate-middle w-75 h-75 border-0 rounded-4" style="pointer-events: none;">
+                            <div class="scanner-line"></div>
+                            <div class="corner top-left"></div>
+                            <div class="corner top-right"></div>
+                            <div class="corner bottom-left"></div>
+                            <div class="corner bottom-right"></div>
+                        </div>
                     </div>
 
-                    <div id="status-container" class="alert alert-info text-center" role="alert">
-                        Initializing camera...
-                    </div>
-
-                    <!-- SignalR connection indicator -->
-                    <div id="signalr-badge" class="text-center mb-2">
-                        <span class="badge bg-secondary" id="signalr-status">⚡ Connecting to live feed...</span>
+                    <div id="status-container" class="alert mb-4 border-0 rounded-3 text-center fw-medium" role="alert" style="background: rgba(108, 99, 255, 0.1); color: var(--text); border: 1px solid rgba(108, 99, 255, 0.2) !important;">
+                        Preparing secure connection...
                     </div>
 
                     <div class="d-grid gap-2 d-md-flex justify-content-md-center">
-                        <button id="btn-manual" class="btn btn-primary btn-lg px-5" onclick="captureManual()">Manual Scan</button>
+                        <button id="btn-manual" class="btn btn-primary btn-lg px-5 py-3 shadow-sm border-0" style="background: var(--accent); border-radius: 12px; font-weight: 600;" onclick="captureManual()">
+                            Force Manual Scan
+                        </button>
                     </div>
                 </div>
-                <div class="card-footer text-muted text-center py-3">
-                    <div class="small">Position your face within the dashed box for automatic detection.</div>
+                <div class="card-footer border-0 text-center py-3" style="background: rgba(255,255,255,0.02);">
+                    <div class="small text-muted">Position your face within the frame for automated identification.</div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
+<style>
+    .scanner-line {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, var(--accent2), transparent);
+        box-shadow: 0 0 15px var(--accent2);
+        animation: scan 3s linear infinite;
+        opacity: 0.6;
+    }
+
+    .corner {
+        position: absolute;
+        width: 30px;
+        height: 30px;
+        border: 3px solid var(--accent);
+        border-radius: 4px;
+        opacity: 0.5;
+    }
+    .top-left { top: 0; left: 0; border-right: 0; border-bottom: 0; }
+    .top-right { top: 0; right: 0; border-left: 0; border-bottom: 0; }
+    .bottom-left { bottom: 0; left: 0; border-right: 0; border-top: 0; }
+    .bottom-right { bottom: 0; right: 0; border-left: 0; border-top: 0; }
+
+    @@keyframes scan {
+        0% { top: 0; }
+        100% { top: 100%; }
+    }
+
+    #video {
+        mask-image: radial-gradient(circle at center, black 60%, transparent 100%);
+    }
+
+    .alert-success { background: rgba(0, 212, 170, 0.1) !important; color: #00d4aa !important; border: 1px solid rgba(0, 212, 170, 0.2) !important; }
+    .alert-warning { background: rgba(255, 193, 7, 0.1) !important; color: #ffc107 !important; border: 1px solid rgba(255, 193, 7, 0.2) !important; }
+    .alert-danger  { background: rgba(255, 107, 107, 0.1) !important; color: #ff6b6b !important; border: 1px solid rgba(255, 107, 107, 0.2) !important; }
+</style>
+
 @section Scripts {
-    <!-- SignalR client library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"
-            integrity="sha512-3oFKFJAtd6qBCmMfQWpjT/sTBFDjFONF1iCkQn8U1MnqFHtBbFKM3zHBBf4E5BEu9MtfZWxYdJlqWJE6PVGQ=="
-            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
 
     <script>
         const video = document.getElementById("video");
@@ -52,79 +101,68 @@
         const signalrStatus = document.getElementById("signalr-status");
 
         const EVENT_ID = "@(ViewData["EventId"] ?? "00000000-0000-0000-0000-000000000000")";
-        const API_BASE = "http://localhost:5242"; // Adjust to your backend port
+        const API_BASE = "http://localhost:5242";
 
         let prevImage = null;
         let scanning = false;
 
         const connection = new signalR.HubConnectionBuilder()
-            .withUrl(`${API_BASE}/attendanceHub`, {
-                withCredentials: true
-            })
+            .withUrl(`${API_BASE}/attendanceHub`, { withCredentials: true })
             .withAutomaticReconnect()
-            .configureLogging(signalR.LogLevel.Warning)
             .build();
 
         connection.on("ReceiveStatus", message => {
-            const isSuccess = message.startsWith("✅");
-            const isWarning = message.startsWith("ℹ️") || message.startsWith("⚠️");
-            const isError   = message.startsWith("❌");
+            const isSuccess = message.includes("✅") || message.includes("Welcome");
+            const isWarning = message.includes("ℹ") || message.includes("⚠️");
+            const isError   = message.includes("❌");
 
-            statusContainer.className = isSuccess ? "alert alert-success"
-                                      : isWarning ? "alert alert-warning"
-                                      : isError   ? "alert alert-danger"
-                                      :             "alert alert-info";
+            statusContainer.className = "alert mb-4 border-0 rounded-3 text-center fw-medium " + 
+                                      (isSuccess ? "alert-success" : isWarning ? "alert-warning" : isError ? "alert-danger" : "");
             statusContainer.innerText = message;
         });
 
         connection.onreconnecting(() => {
-            signalrStatus.className = "badge bg-warning text-dark";
-            signalrStatus.innerText = "⚡ Reconnecting...";
+            signalrStatus.style.color = "#ffc107";
+            signalrStatus.innerText = "Reconnecting...";
         });
 
         connection.onreconnected(() => {
-            signalrStatus.className = "badge bg-success";
-            signalrStatus.innerText = "⚡ Live";
+            signalrStatus.style.color = "#00d4aa";
+            signalrStatus.innerText = "Connected • Live";
         });
 
         connection.onclose(() => {
-            signalrStatus.className = "badge bg-danger";
-            signalrStatus.innerText = "⚡ Disconnected";
+            signalrStatus.style.color = "#ff6b6b";
+            signalrStatus.innerText = "Offline";
         });
 
         connection.start()
             .then(() => {
-                signalrStatus.className = "badge bg-success";
-                signalrStatus.innerText = "⚡ Live";
-                console.log("SignalR connected to /attendanceHub");
+                signalrStatus.style.color = "#00d4aa";
+                signalrStatus.innerText = "Connected • Live";
             })
             .catch(err => {
-                signalrStatus.className = "badge bg-danger";
-                signalrStatus.innerText = "⚡ Offline (no live feed)";
-                console.warn("SignalR connection failed — falling back to fetch-only mode:", err);
+                signalrStatus.style.color = "#ff6b6b";
+                signalrStatus.innerText = "Offline";
             });
 
-        navigator.mediaDevices.getUserMedia({ video: true })
+        navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 } })
             .then(stream => {
                 video.srcObject = stream;
-                statusContainer.className = "alert alert-success";
-                statusContainer.innerText = "Camera Active — Scanning...";
-
-                // Auto-scan every 1 second
-                setInterval(captureFrame, 1000);
+                statusContainer.innerText = "System Ready — Automatic Scanning Active";
+                setInterval(captureFrame, 1500);
             })
             .catch(err => {
-                console.error("Camera error:", err);
-                statusContainer.className = "alert alert-danger";
-                statusContainer.innerText = "Error: Could not access camera. Please allow camera access.";
+                statusContainer.className = "alert alert-danger mb-4 border-0 rounded-3 text-center fw-medium";
+                statusContainer.innerText = "Error: Camera access denied. Check browser permissions.";
             });
 
         function getFrameBase64() {
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
-            if (canvas.width === 0 || canvas.height === 0) return null;
+            if (canvas.width === 0) return null;
             canvas.getContext("2d").drawImage(video, 0, 0);
-            return canvas.toDataURL("image/jpeg");
+            return canvas.toDataURL("image/jpeg", 0.7);
         }
 
         async function captureFrame() {
@@ -137,32 +175,22 @@
         async function captureManual() {
             const image = getFrameBase64();
             if (!image) return;
+            statusContainer.innerText = "Processing manual scan...";
             await sendScan(image);
         }
 
         async function sendScan(image) {
             scanning = true;
             try {
-                const payload = {
-                    image: image,
-                    prevImage: prevImage,
-                    eventId: EVENT_ID
-                };
-
-                // send the scan
                 await fetch(`${API_BASE}/api/attendance/scan`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify({ image: image, prevImage: prevImage, eventId: EVENT_ID })
                 });
-
             } catch (err) {
                 console.error("Scan error:", err);
-                // Fallback
-                statusContainer.className = "alert alert-danger";
-                statusContainer.innerText = "Error: Could not reach server.";
             } finally {
-                prevImage = getFrameBase64();
+                prevImage = image;
                 scanning = false;
             }
         }

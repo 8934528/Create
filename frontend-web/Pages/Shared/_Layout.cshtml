@@ -3,30 +3,90 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - frontend_web</title>
+    <title>@ViewData["Title"] - CREATE</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/frontend_web.styles.css" asp-append-version="true" />
+    <style>
+        :root {
+            --bg: #0a0f1e;
+            --surface: rgba(255,255,255,0.05);
+            --border: rgba(255,255,255,0.08);
+            --accent: #6c63ff;
+            --accent2: #00d4aa;
+            --text: #e2e8f0;
+            --muted: #64748b;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(108, 99, 255, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(0, 212, 170, 0.05) 0%, transparent 40%);
+        }
+
+        .navbar {
+            background: rgba(10, 15, 30, 0.8) !important;
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 0;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #6c63ff, #00d4aa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 1.5rem;
+        }
+
+        .nav-link {
+            color: var(--text) !important;
+            font-weight: 500;
+            transition: color 0.2s, transform 0.2s;
+            margin: 0 0.5rem;
+        }
+
+        .nav-link:hover {
+            color: var(--accent) !important;
+            transform: translateY(-1px);
+        }
+
+        .footer {
+            background: transparent;
+            border-top: 1px solid var(--border);
+            color: var(--muted);
+        }
+    </style>
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm mb-3">
             <div class="container">
-                <a class="navbar-brand" asp-area="" asp-page="/Index">frontend_web</a>
+                <a class="navbar-brand" asp-area="" asp-page="/Index">CREATE</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
+                    <span class="navbar-toggler-icon" style="filter: invert(1);"></span>
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Index">Home</a>
+                            <a class="nav-link" asp-area="" asp-page="/Index">Home</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Privacy">Privacy</a>
+                            <a class="nav-link" asp-area="" asp-page="/Attendance">Scanner</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Attendance">Attendance</a>
+                            <a class="nav-link" asp-area="" asp-page="/Register">Register</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-page="/Dashboard">Dashboard</a>
                         </li>
                     </ul>
                 </div>
@@ -39,9 +99,9 @@
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
+    <footer class="footer text-center py-4">
         <div class="container">
-            &copy; 2026 - frontend_web - <a asp-area="" asp-page="/Privacy">Privacy</a>
+            &copy; 2026 - CREATE - Next-Gen Face Recognition
         </div>
     </footer>
 
@@ -51,4 +111,4 @@
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>
-</html>
+</html>

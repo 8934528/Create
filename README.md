@@ -48,6 +48,13 @@ Ensure PostgreSQL is running on your machine, then run these commands in a termi
 
 4. Run the Frontend (Web)
 
+- make sure that you have an extension of pgvector installed on your postgresql server run
+
+        sql
+        CREATE EXTENSION IF NOT EXISTS vector;
+
+- after that you can run the frontend
+
         Open another terminal and run:
 
         bash

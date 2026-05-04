@@ -1,40 +1,69 @@
 @page
 @model frontend_web.Pages.RegisterModel
 @{
-    ViewData["Title"] = "Register Face";
+    ViewData["Title"] = "Face Enrollment";
 }
 
 <div class="container mt-5">
     <div class="row justify-content-center">
-        <div class="col-md-6 card shadow-lg p-4">
-            <h2 class="text-center mb-4">Face Registration</h2>
-            
-            <div class="form-group mb-3">
-                <label>Full Name</label>
-                <input id="name" class="form-control" placeholder="John Doe" />
-            </div>
-            
-            <div class="form-group mb-3">
-                <label>Email</label>
-                <input id="email" type="email" class="form-control" placeholder="john@example.com" />
-            </div>
-            
-            <div class="form-group mb-3">
-                <label>Password</label>
-                <input id="password" type="password" class="form-control" />
-            </div>
+        <div class="col-md-6">
+            <div class="card shadow-lg border-0 rounded-lg overflow-hidden" style="background: var(--surface); border: 1px solid var(--border) !important; backdrop-filter: blur(12px);">
+                <div class="card-header border-0 text-center py-4" style="background: rgba(255,255,255,0.03);">
+                    <h2 class="fw-bold my-1" style="background: linear-gradient(135deg, #fff 0%, #94a3b8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                        Face Enrollment
+                    </h2>
+                    <p class="text-muted small">Capture your biometric ID for secure access</p>
+                </div>
+                
+                <div class="card-body p-4">
+                    <div class="form-group mb-3">
+                        <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 0.05em;">Full Name</label>
+                        <input id="name" class="form-control form-control-lg bg-dark border-0 text-white shadow-none" placeholder="John Doe" style="background: rgba(255,255,255,0.05) !important; border-radius: 12px;" />
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 0.05em;">Email Address</label>
+                        <input id="email" type="email" class="form-control form-control-lg bg-dark border-0 text-white shadow-none" placeholder="john@example.com" style="background: rgba(255,255,255,0.05) !important; border-radius: 12px;" />
+                    </div>
+                    
+                    <div class="form-group mb-4">
+                        <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 0.05em;">Security PIN / Password</label>
+                        <input id="password" type="password" class="form-control form-control-lg bg-dark border-0 text-white shadow-none" style="background: rgba(255,255,255,0.05) !important; border-radius: 12px;" />
+                    </div>
 
-            <div class="video-container text-center mb-3">
-                <video id="video" width="100%" height="auto" autoplay class="rounded border"></video>
-                <canvas id="canvas" style="display:none;"></canvas>
-            </div>
+                    <div class="video-container text-center mb-4 position-relative">
+                        <video id="video" width="100%" height="auto" autoplay class="rounded-4 border-0 shadow-lg" style="background: #000; transform: scaleX(-1);"></video>
+                        <canvas id="canvas" style="display:none;"></canvas>
+                        <div class="registration-overlay"></div>
+                    </div>
 
-            <button class="btn btn-primary w-100" onclick="register()">Register with Face</button>
-            
-            <div id="message" class="mt-3 text-center"></div>
+                    <button class="btn btn-primary btn-lg w-100 py-3 border-0" style="background: var(--accent); border-radius: 12px; font-weight: 600;" onclick="register()">
+                        Complete Registration
+                    </button>
+                    
+                    <div id="message" class="mt-4 text-center fw-medium"></div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
+<style>
+    .registration-overlay {
+        position: absolute;
+        inset: 15%;
+        border: 2px dashed rgba(108, 99, 255, 0.4);
+        border-radius: 20px;
+        pointer-events: none;
+    }
+    
+    .form-control::placeholder { color: #4b5563; }
+    .form-control:focus { background: rgba(255,255,255,0.08) !important; }
+
+    #message.text-success { color: var(--accent2) !important; }
+    #message.text-danger { color: #ff6b6b !important; }
+    #message.text-info { color: var(--accent) !important; }
+</style>
 
 @section Scripts {
     <script src="~/js/register.js"></script>
@@ -42,13 +71,13 @@
         const video = document.getElementById('video');
         
         if (navigator.mediaDevices.getUserMedia) {
-            navigator.mediaDevices.getUserMedia({ video: true })
+            navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 } })
                 .then(function (stream) {
                     video.srcObject = stream;
                 })
                 .catch(function (error) {
-                    console.log("Something went wrong!");
                     document.getElementById('message').innerText = "Camera access denied.";
+                    document.getElementById('message').className = "mt-4 text-center text-danger";
                 });
         }
     </script>
