@@ -405,3 +405,4 @@ FodyWeavers.xsd
 
 .env
 structure.md
+venv/

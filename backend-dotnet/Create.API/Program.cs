@@ -1,9 +1,12 @@
-using Create.Infrastructure.Data;
-using Create.Application.Services;
 using Create.API.Hubs;
+using Pgvector.EntityFrameworkCore;
+using Create.Application.Services;
+using Create.Infrastructure.Data;
+using Create.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Npgsql;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,14 +15,19 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddHttpClient<FaceService>();
-builder.Services.AddSingleton<FaceCacheService>();
+builder.Services.AddSingleton<IFaceCacheService, FaceCacheService>();
 
 // SignalR
 builder.Services.AddSignalR();
 
 // Database
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
+dataSourceBuilder.UseVector();
+var dataSource = dataSourceBuilder.Build();
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(dataSource, o => o.UseVector()));
 
 // JWT Authentication
 var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]);
@@ -68,7 +76,7 @@ var app = builder.Build();
 // Load face embeddings into memory cache on startup
 using (var scope = app.Services.CreateScope())
 {
-    var cache = scope.ServiceProvider.GetRequiredService<FaceCacheService>();
+    var cache = scope.ServiceProvider.GetRequiredService<IFaceCacheService>();
     await cache.LoadAsync();
 }
 

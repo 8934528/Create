@@ -17,13 +17,13 @@ namespace Create.API.Controllers
     public class AttendanceController : ControllerBase
     {
         private readonly FaceService _faceService;
-        private readonly FaceCacheService _cache;
+        private readonly IFaceCacheService _cache;
         private readonly ApplicationDbContext _db;
         private readonly IHubContext<AttendanceHub> _hub;
 
         public AttendanceController(
             FaceService faceService,
-            FaceCacheService cache,
+            IFaceCacheService cache,
             ApplicationDbContext db,
             IHubContext<AttendanceHub> hub)
         {

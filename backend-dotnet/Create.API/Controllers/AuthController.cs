@@ -16,9 +16,9 @@ namespace Create.API.Controllers
     {
         private readonly FaceService _faceService;
         private readonly ApplicationDbContext _db;
-        private readonly FaceCacheService _cache;
+        private readonly IFaceCacheService _cache;
 
-        public AuthController(FaceService faceService, ApplicationDbContext db, FaceCacheService cache)
+        public AuthController(FaceService faceService, ApplicationDbContext db, IFaceCacheService cache)
         {
             _faceService = faceService;
             _db = db;

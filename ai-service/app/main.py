@@ -9,3 +9,7 @@ def read_root():
 
 app.include_router(register.router, prefix="/register")
 app.include_router(verify.router, prefix="/verify")
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

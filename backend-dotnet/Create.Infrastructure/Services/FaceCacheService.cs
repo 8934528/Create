@@ -1,14 +1,16 @@
+using Create.Application.Services;
 using Create.Domain.Entities;
 using Create.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Create.Application.Services
+namespace Create.Infrastructure.Services
 {
-    public class FaceCacheService
+    public class FaceCacheService : IFaceCacheService
     {
         private readonly IServiceProvider _serviceProvider;
         private List<CachedFace> _faces = new();
@@ -47,11 +49,5 @@ namespace Create.Application.Services
                 return new List<CachedFace>(_faces);
             }
         }
-    }
-
-    public class CachedFace
-    {
-        public Guid UserId { get; set; }
-        public float[] Embedding { get; set; } = Array.Empty<float>();
     }
 }

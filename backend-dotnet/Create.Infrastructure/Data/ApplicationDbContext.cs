@@ -40,7 +40,17 @@ namespace Create.Infrastructure.Data
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("uuid_generate_v4()");
                 entity.Property(e => e.UserId).HasColumnName("user_id");
-                entity.Property(e => e.Embedding).HasColumnName("embedding").HasColumnType("vector(128)");
+                
+                var vectorConverter = new Microsoft.EntityFrameworkCore.Storage.ValueConversion.ValueConverter<float[], Pgvector.Vector>(
+                    v => new Pgvector.Vector(v),
+                    v => v.ToArray()
+                );
+
+                entity.Property(e => e.Embedding)
+                      .HasColumnName("embedding")
+                      .HasColumnType("vector(128)")
+                      .HasConversion(vectorConverter);
+
                 entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                 entity.HasOne(d => d.User)

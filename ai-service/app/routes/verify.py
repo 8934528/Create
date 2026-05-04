@@ -20,7 +20,6 @@ class VerifyRequest(BaseModel):
 
 
 def decode_image(b64_str: str):
-    """Decode a base64 image string (with or without data-URI prefix)."""
     if "," in b64_str:
         b64_str = b64_str.split(",")[1]
     data = base64.b64decode(b64_str)
