@@ -1,4 +1,4 @@
-# 🚀 Create: Smart Attendance System
+# Create
 
 > **Next-Gen Event, Work, and Class Registration powered by AI Face Recognition.**
 
