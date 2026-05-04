@@ -53,7 +53,7 @@ namespace Create.API.Controllers
                 if (!result.match || string.IsNullOrEmpty(result.userId))
                 {
                     var msg = result.error ?? "Face not recognized";
-                    await _hub.Clients.All.SendAsync("ReceiveStatus", $"⚠️ {msg}");
+                    await _hub.Clients.All.SendAsync("ReceiveStatus", $"[Warning] {msg}");
                     return Ok(new { success = false, message = msg });
                 }
 
@@ -74,7 +74,7 @@ namespace Create.API.Controllers
                 if (alreadyCheckedIn)
                 {
                     await _hub.Clients.All.SendAsync("ReceiveStatus",
-                        "ℹAlready checked in for this event today.");
+                        "[Info] Already checked in for this event today.");
                     return Ok(new { success = false, message = "Already checked in for this event today" });
                 }
 
@@ -96,7 +96,7 @@ namespace Create.API.Controllers
                 var fullName = user?.FullName ?? "Unknown";
 
                 await _hub.Clients.All.SendAsync("ReceiveStatus",
-                    $"Welcome, {fullName}! Attendance recorded.");
+                    $"[Success] Welcome, {fullName}. Attendance recorded.");
 
                 return Ok(new
                 {
@@ -158,16 +158,20 @@ namespace Create.API.Controllers
 
             // Last 7 days trend
             var since = today.AddDays(-6);
-            var last7Days = await _db.Attendance
-                .Where(a => a.CheckInTime.Date >= since)
-                .GroupBy(a => a.CheckInTime.Date)
+            var last7DaysRaw = await _db.Attendance
+                .Where(a => a.CheckInTime >= since)
+                .Select(a => a.CheckInTime.Date)
+                .ToListAsync();
+
+            var last7Days = last7DaysRaw
+                .GroupBy(d => d)
                 .Select(g => new
                 {
                     date = g.Key.ToString("yyyy-MM-dd"),
                     count = g.Count()
                 })
                 .OrderBy(x => x.date)
-                .ToListAsync();
+                .ToList();
 
             var fullWeek = Enumerable.Range(0, 7)
                 .Select(i => today.AddDays(-6 + i).ToString("yyyy-MM-dd"))

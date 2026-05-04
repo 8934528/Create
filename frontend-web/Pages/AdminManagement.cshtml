@@ -1,0 +1,295 @@
+@page
+@model frontend_web.Pages.AdminManagementModel
+@{
+    ViewData["Title"] = "Event Management — CREATE";
+}
+
+<div class="container-fluid py-4 bg-light min-vh-100">
+    <div class="px-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="fw-bold text-primary mb-0">
+                    <i class="fi fi-rr-settings-sliders me-2"></i> Event Management
+                </h1>
+                <p class="text-muted small mb-0">Manage attendance events and reports</p>
+            </div>
+            <a asp-page="/Dashboard" class="btn btn-white border rounded-pill shadow-sm">
+                <i class="fi fi-rr-arrow-left me-1"></i> Back to Dashboard
+            </a>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <ul class="nav nav-pills mb-4 bg-white p-2 rounded-pill shadow-sm d-inline-flex border" id="pills-tab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active rounded-pill px-4" id="pills-create-tab" data-bs-toggle="pill" data-bs-target="#pills-create" type="button" role="tab">
+                    <i class="fi fi-rr-plus-small me-1"></i> Create Event
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link rounded-pill px-4" id="pills-list-tab" data-bs-toggle="pill" data-bs-target="#pills-list" type="button" role="tab">
+                    <i class="fi fi-rr-list me-1"></i> View List
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="pills-tabContent">
+            <!-- Create Event Tab -->
+            <div class="tab-pane fade show active" id="pills-create" role="tabpanel">
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="bg-white p-4 rounded-4 shadow-sm border-0">
+                            <h2 class="h5 fw-bold mb-4">New Attendance Session</h2>
+                            <form id="createEventForm">
+                                <div class="mb-3">
+                                    <label class="form-label text-muted small fw-bold text-uppercase">Event Name</label>
+                                    <input type="text" class="form-control form-control-lg bg-light border-0" id="eventName" placeholder="e.g. CS101 Lecture, Morning Shift" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label text-muted small fw-bold text-uppercase">Location</label>
+                                    <input type="text" class="form-control form-control-lg bg-light border-0" id="eventLocation" placeholder="e.g. Hall A, Office Floor 2" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label text-muted small fw-bold text-uppercase">Event Type</label>
+                                    <select class="form-select form-select-lg bg-light border-0" id="eventType" required>
+                                        <option value="ClassAttendance">Class Attendance</option>
+                                        <option value="EmployeeCheckIn">Worker/Employee Check-in</option>
+                                        <option value="SpecialPerformance">Special Performance</option>
+                                    </select>
+                                </div>
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-6">
+                                        <label class="form-label text-muted small fw-bold text-uppercase">Start Time</label>
+                                        <input type="datetime-local" class="form-control form-control-lg bg-light border-0" id="startTime" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label text-muted small fw-bold text-uppercase">End Time</label>
+                                        <input type="datetime-local" class="form-control form-control-lg bg-light border-0" id="endTime" required>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill shadow-sm py-3">
+                                    <i class="fi fi-rr-disk me-2"></i> Create & Save Event
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 d-none d-lg-block">
+                        <div class="h-100 d-flex flex-column justify-content-center p-5 text-center bg-primary bg-opacity-10 rounded-4 border border-primary border-opacity-10 border-dashed">
+                            <div class="display-1 text-primary opacity-25 mb-4">
+                                <i class="fi fi-rr-calendar-lines"></i>
+                            </div>
+                            <h3 class="fw-bold text-primary">Manage Your Events</h3>
+                            <p class="text-muted">Create specific attendance sessions for classes, employees, or performances. All data will be available for reporting.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- View List Tab -->
+            <div class="tab-pane fade" id="pills-list" role="tabpanel">
+                <div class="bg-white p-4 rounded-4 shadow-sm border-0">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2 class="h5 fw-bold mb-0">Existing Events</h2>
+                        <button class="btn btn-light btn-sm rounded-pill px-3" onclick="loadEvents()">
+                            <i class="fi fi-rr-refresh me-1"></i> Refresh
+                        </button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle custom-table">
+                            <thead>
+                                <tr class="text-muted small fw-bold text-uppercase">
+                                    <th>Event Name</th>
+                                    <th>Type</th>
+                                    <th>Location</th>
+                                    <th>Date</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="eventList">
+                                <!-- loaded via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Attendance Details Modal -->
+<div class="modal fade" id="attendanceModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="modalEventName">Event Attendance</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4 bg-light p-3 rounded-3">
+                    <div>
+                        <div class="text-muted small fw-bold text-uppercase">Total Scanned</div>
+                        <div class="h3 fw-bold text-primary mb-0" id="totalScanned">0</div>
+                    </div>
+                    <a href="#" id="downloadPdfBtn" class="btn btn-primary rounded-pill shadow-sm">
+                        <i class="fi fi-rr-file-pdf me-1"></i> Download PDF Report
+                    </a>
+                </div>
+                <div class="table-responsive" style="max-height: 400px;">
+                    <table class="table table-sm align-middle">
+                        <thead class="sticky-top bg-white">
+                            <tr class="text-muted small fw-bold text-uppercase">
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Time</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attendanceList">
+                            <!-- Loaded via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .custom-table thead th {
+        border-top: none;
+        padding-bottom: 1.5rem;
+    }
+    .custom-table tbody td {
+        padding: 1.25rem 0.75rem;
+        border-bottom-color: #f8f9fa;
+    }
+    .nav-pills .nav-link {
+        color: #64748b;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+    .nav-pills .nav-link.active {
+        background-color: var(--bs-primary);
+        color: white;
+        box-shadow: 0 4px 12px rgba(92, 107, 192, 0.2);
+    }
+    .card-minimal {
+        transition: transform 0.2s ease;
+    }
+    .card-minimal:hover {
+        transform: translateY(-2px);
+    }
+    .btn-white {
+        background: white;
+        color: #334155;
+    }
+    .btn-white:hover {
+        background: #f8f9fa;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        const API_BASE = "http://localhost:5242";
+        const modal = new bootstrap.Modal(document.getElementById('attendanceModal'));
+
+        document.getElementById('createEventForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                name: document.getElementById('eventName').value,
+                location: document.getElementById('eventLocation').value,
+                type: document.getElementById('eventType').value,
+                startTime: document.getElementById('startTime').value,
+                endTime: document.getElementById('endTime').value
+            };
+
+            try {
+                const res = await fetch(`${API_BASE}/api/events`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (res.ok) {
+                    alert('Event created successfully!');
+                    e.target.reset();
+                    loadEvents();
+                    // Switch to list tab
+                    document.getElementById('pills-list-tab').click();
+                } else {
+                    const err = await res.text();
+                    alert('Error: ' + err);
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Failed to create event.');
+            }
+        });
+
+        async function loadEvents() {
+            try {
+                const res = await fetch(`${API_BASE}/api/events`);
+                const events = await res.json();
+                const tbody = document.getElementById('eventList');
+                tbody.innerHTML = '';
+
+                events.forEach(ev => {
+                    const date = new Date(ev.startTime).toLocaleDateString();
+                    const row = `
+                        <tr>
+                            <td>
+                                <div class="fw-bold text-dark">${ev.name}</div>
+                                <div class="text-muted small">${ev.id}</div>
+                            </td>
+                            <td><span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3">${ev.type}</span></td>
+                            <td>${ev.location}</td>
+                            <td>${date}</td>
+                            <td class="text-end">
+                                <button class="btn btn-outline-primary btn-sm rounded-pill px-3" onclick="viewDetails('${ev.id}', '${ev.name}')">
+                                    <i class="fi fi-rr-eye me-1"></i> View Attendance
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function viewDetails(id, name) {
+            document.getElementById('modalEventName').innerText = name;
+            document.getElementById('downloadPdfBtn').href = `${API_BASE}/api/events/${id}/export-pdf`;
+            
+            try {
+                const res = await fetch(`${API_BASE}/api/events/${id}/attendance`);
+                const data = await res.json();
+                
+                document.getElementById('totalScanned').innerText = data.length;
+                const tbody = document.getElementById('attendanceList');
+                tbody.innerHTML = '';
+
+                data.forEach(a => {
+                    const time = new Date(a.checkInTime).toLocaleTimeString();
+                    const row = `
+                        <tr>
+                            <td class="fw-bold">${a.fullName}</td>
+                            <td class="text-muted">${a.email}</td>
+                            <td>${time}</td>
+                            <td><span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2">Present</span></td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+
+                modal.show();
+            } catch (err) {
+                console.error(err);
+                alert('Failed to load attendance details.');
+            }
+        }
+
+        // Initial load
+        loadEvents();
+    </script>
+}

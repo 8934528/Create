@@ -15,47 +15,48 @@
         <nav class="navbar navbar-expand-sm navbar-light bg-white mb-0">
             <div class="container-fluid">
                 <a class="navbar-brand d-flex align-items-center" asp-area="" asp-page="/Index">
-                    <i class="fi fi-rr-apps me-2"></i>
-                    <span>CREATE</span>
+                    <img src="~/favicon.png" alt="Logo" width="40" height="40" class="me-2" style="object-fit: contain;" />
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-center">
+                    <ul class="navbar-nav">
                         <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-page="/Index">Home</a>
+                            <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Attendance" ? "active" : "")" asp-area="" asp-page="/Attendance">
+                                <i class="fi fi-rr-expand me-1"></i> Scanner
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-page="/Attendance">Scanner</a>
+                            <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Register" ? "active" : "")" asp-area="" asp-page="/Register">
+                                <i class="fi fi-rr-user-add me-1"></i> Register
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-page="/Register">Register</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-page="/Dashboard">Dashboard</a>
+                            <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Dashboard" ? "active" : "")" asp-area="" asp-page="/Dashboard">
+                                <i class="fi fi-rr-stats me-1"></i> Dashboard
+                            </a>
                         </li>
                     </ul>
                 </div>
+                <div class="d-none d-sm-block" style="width: 100px;"></div> 
             </div>
         </nav>
     </header>
 
-    <main role="main" class="pb-3">
-        <div class="container-fluid px-0">
-            @RenderBody()
-        </div>
+    <main role="main" class="full-screen-container">
+        @RenderBody()
     </main>
 
-    <footer class="footer py-4 mt-auto">
+    <footer class="footer py-3 mt-auto">
         <div class="container-fluid text-center">
-            &copy; 2026 - CREATE - Next-Gen Face Recognition
+            &copy; 2026 - Next-Gen Face Recognition
         </div>
     </footer>
 
     <!-- Toast Container -->
-    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div class="toast-container position-fixed top-0 end-0 p-3">
         <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
             <div class="toast-header">
                 <i class="fi fi-rr-bell me-2 text-primary"></i>
@@ -64,7 +65,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
             </div>
             <div class="toast-body" id="toastMessage">
-                Hello, world! This is a toast message.
+                Hello, world!
             </div>
         </div>
     </div>

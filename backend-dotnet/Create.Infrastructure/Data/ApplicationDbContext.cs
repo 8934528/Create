@@ -68,6 +68,7 @@ namespace Create.Infrastructure.Data
                 entity.Property(e => e.Location).HasColumnName("location").HasMaxLength(150);
                 entity.Property(e => e.StartTime).HasColumnName("start_time");
                 entity.Property(e => e.EndTime).HasColumnName("end_time");
+                entity.Property(e => e.Type).HasColumnName("event_type").HasConversion<string>();
             });
 
             modelBuilder.Entity<Attendance>(entity =>

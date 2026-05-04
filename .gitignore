@@ -406,3 +406,8 @@ FodyWeavers.xsd
 .env
 structure.md
 venv/
+
+# (if it's a dump, not migrations)
+*.sql 
+node_modules/
+bin/
