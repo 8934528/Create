@@ -4,41 +4,50 @@
     ViewData["Title"] = "Face Enrollment";
 }
 
-<div class="container mt-5">
+<div class="container-fluid py-5 bg-light min-vh-100">
     <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow-lg border-0 rounded-lg overflow-hidden" style="background: var(--surface); border: 1px solid var(--border) !important; backdrop-filter: blur(12px);">
-                <div class="card-header border-0 text-center py-4" style="background: rgba(255,255,255,0.03);">
-                    <h2 class="fw-bold my-1" style="background: linear-gradient(135deg, #fff 0%, #94a3b8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-                        Face Enrollment
+        <div class="col-md-10 col-lg-6">
+            <div class="card card-minimal border-0 shadow-sm overflow-hidden">
+                <div class="card-header bg-white border-bottom text-center py-4">
+                    <h2 class="fw-bold text-primary mb-0">
+                        <i class="fi fi-rr-user-add me-2"></i> Face Enrollment
                     </h2>
-                    <p class="text-muted small">Capture your biometric ID for secure access</p>
+                    <p class="text-muted small mb-0">Capture your biometric ID for secure access</p>
                 </div>
                 
-                <div class="card-body p-4">
-                    <div class="form-group mb-3">
-                        <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 0.05em;">Full Name</label>
-                        <input id="name" class="form-control form-control-lg bg-dark border-0 text-white shadow-none" placeholder="John Doe" style="background: rgba(255,255,255,0.05) !important; border-radius: 12px;" />
+                <div class="card-body p-5">
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-muted text-uppercase mb-2">Full Name</label>
+                        <div class="input-group border rounded-3 bg-light p-1">
+                            <span class="input-group-text bg-transparent border-0"><i class="fi fi-rr-user text-muted"></i></span>
+                            <input id="name" class="form-control border-0 bg-transparent shadow-none py-2" placeholder="Mihlali Mabovula" />
+                        </div>
                     </div>
                     
-                    <div class="form-group mb-3">
-                        <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 0.05em;">Email Address</label>
-                        <input id="email" type="email" class="form-control form-control-lg bg-dark border-0 text-white shadow-none" placeholder="john@example.com" style="background: rgba(255,255,255,0.05) !important; border-radius: 12px;" />
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-muted text-uppercase mb-2">Email Address</label>
+                        <div class="input-group border rounded-3 bg-light p-1">
+                            <span class="input-group-text bg-transparent border-0"><i class="fi fi-rr-envelope text-muted"></i></span>
+                            <input id="email" type="email" class="form-control border-0 bg-transparent shadow-none py-2" placeholder="[EMAIL_ADDRESS]" />
+                        </div>
                     </div>
                     
-                    <div class="form-group mb-4">
-                        <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 0.05em;">Security PIN / Password</label>
-                        <input id="password" type="password" class="form-control form-control-lg bg-dark border-0 text-white shadow-none" style="background: rgba(255,255,255,0.05) !important; border-radius: 12px;" />
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-muted text-uppercase mb-2">Security PIN / Password</label>
+                        <div class="input-group border rounded-3 bg-light p-1">
+                            <span class="input-group-text bg-transparent border-0"><i class="fi fi-rr-lock text-muted"></i></span>
+                            <input id="password" type="password" class="form-control border-0 bg-transparent shadow-none py-2" />
+                        </div>
                     </div>
 
-                    <div class="video-container text-center mb-4 position-relative">
-                        <video id="video" width="100%" height="auto" autoplay class="rounded-4 border-0 shadow-lg" style="background: #000; transform: scaleX(-1);"></video>
+                    <div class="video-container text-center mb-5 position-relative shadow-sm rounded-4 overflow-hidden" style="background: #eee;">
+                        <video id="video" width="100%" height="auto" autoplay style="transform: scaleX(-1);"></video>
                         <canvas id="canvas" style="display:none;"></canvas>
-                        <div class="registration-overlay"></div>
+                        <div class="registration-overlay position-absolute top-50 start-50 translate-middle w-75 h-75 border rounded-4" style="pointer-events: none; border: 2px dashed rgba(92, 107, 192, 0.4) !important;"></div>
                     </div>
 
-                    <button class="btn btn-primary btn-lg w-100 py-3 border-0" style="background: var(--accent); border-radius: 12px; font-weight: 600;" onclick="register()">
-                        Complete Registration
+                    <button class="btn btn-primary btn-lg w-100 py-3 btn-subtle border-0 shadow-sm" onclick="register()">
+                        <i class="fi fi-rr-id-badge me-2"></i> Complete Registration
                     </button>
                     
                     <div id="message" class="mt-4 text-center fw-medium"></div>
@@ -49,20 +58,10 @@
 </div>
 
 <style>
-    .registration-overlay {
-        position: absolute;
-        inset: 15%;
-        border: 2px dashed rgba(108, 99, 255, 0.4);
-        border-radius: 20px;
-        pointer-events: none;
+    .input-group:focus-within {
+        border-color: var(--primary) !important;
+        background: white !important;
     }
-    
-    .form-control::placeholder { color: #4b5563; }
-    .form-control:focus { background: rgba(255,255,255,0.08) !important; }
-
-    #message.text-success { color: var(--accent2) !important; }
-    #message.text-danger { color: #ff6b6b !important; }
-    #message.text-info { color: var(--accent) !important; }
 </style>
 
 @section Scripts {
@@ -76,9 +75,12 @@
                     video.srcObject = stream;
                 })
                 .catch(function (error) {
-                    document.getElementById('message').innerText = "Camera access denied.";
+                    document.getElementById('message').innerHTML = '<i class="fi fi-rr-camera-slash me-2"></i> Camera access denied.';
                     document.getElementById('message').className = "mt-4 text-center text-danger";
                 });
         }
+
+        // Override default register feedback with our Toast/Modal system
+        // Assuming register() is in register.js, we might want to check its implementation
     </script>
 }

@@ -5,74 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - CREATE</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/segoe_ui.css" />
+    <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/2.1.0/uicons-regular-rounded/css/uicons-regular-rounded.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/frontend_web.styles.css" asp-append-version="true" />
-    <style>
-        :root {
-            --bg: #0a0f1e;
-            --surface: rgba(255,255,255,0.05);
-            --border: rgba(255,255,255,0.08);
-            --accent: #6c63ff;
-            --accent2: #00d4aa;
-            --text: #e2e8f0;
-            --muted: #64748b;
-        }
-
-        body {
-            background-color: var(--bg);
-            color: var(--text);
-            font-family: 'Inter', sans-serif;
-            background-image: 
-                radial-gradient(circle at 10% 20%, rgba(108, 99, 255, 0.05) 0%, transparent 40%),
-                radial-gradient(circle at 90% 80%, rgba(0, 212, 170, 0.05) 0%, transparent 40%);
-        }
-
-        .navbar {
-            background: rgba(10, 15, 30, 0.8) !important;
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border);
-            padding: 1rem 0;
-        }
-
-        .navbar-brand {
-            font-weight: 700;
-            letter-spacing: -0.02em;
-            background: linear-gradient(135deg, #6c63ff, #00d4aa);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-size: 1.5rem;
-        }
-
-        .nav-link {
-            color: var(--text) !important;
-            font-weight: 500;
-            transition: color 0.2s, transform 0.2s;
-            margin: 0 0.5rem;
-        }
-
-        .nav-link:hover {
-            color: var(--accent) !important;
-            transform: translateY(-1px);
-        }
-
-        .footer {
-            background: transparent;
-            border-top: 1px solid var(--border);
-            color: var(--muted);
-        }
-    </style>
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm mb-3">
-            <div class="container">
-                <a class="navbar-brand" asp-area="" asp-page="/Index">CREATE</a>
+        <nav class="navbar navbar-expand-sm navbar-light bg-white mb-0">
+            <div class="container-fluid">
+                <a class="navbar-brand d-flex align-items-center" asp-area="" asp-page="/Index">
+                    <i class="fi fi-rr-apps me-2"></i>
+                    <span>CREATE</span>
+                </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon" style="filter: invert(1);"></span>
+                    <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
@@ -93,22 +41,90 @@
             </div>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
 
-    <footer class="footer text-center py-4">
-        <div class="container">
+    <main role="main" class="pb-3">
+        <div class="container-fluid px-0">
+            @RenderBody()
+        </div>
+    </main>
+
+    <footer class="footer py-4 mt-auto">
+        <div class="container-fluid text-center">
             &copy; 2026 - CREATE - Next-Gen Face Recognition
         </div>
     </footer>
 
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <i class="fi fi-rr-bell me-2 text-primary"></i>
+                <strong class="me-auto" id="toastTitle">Notification</strong>
+                <small>Just now</small>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" id="toastMessage">
+                Hello, world! This is a toast message.
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Notifications/Confirmations -->
+    <div class="modal fade" id="appModal" tabindex="-1" aria-labelledby="appModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold" id="appModalLabel">Notification</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body py-4" id="appModalBody">
+                    ...
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary px-4" id="appModalConfirmBtn" style="display: none;">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    
+    <script>
+        // Global Helper for Toasts
+        function showToast(title, message, type = 'primary') {
+            const toastEl = document.getElementById('liveToast');
+            document.getElementById('toastTitle').innerText = title;
+            document.getElementById('toastMessage').innerText = message;
+            const toast = new bootstrap.Toast(toastEl);
+            toast.show();
+        }
+
+        // Global Helper for Modals
+        function showModal(title, body, confirmCallback = null) {
+            const modalEl = document.getElementById('appModal');
+            document.getElementById('appModalLabel').innerText = title;
+            document.getElementById('appModalBody').innerHTML = body;
+            const confirmBtn = document.getElementById('appModalConfirmBtn');
+            
+            if (confirmCallback) {
+                confirmBtn.style.display = 'block';
+                confirmBtn.onclick = () => {
+                    confirmCallback();
+                    bootstrap.Modal.getInstance(modalEl).hide();
+                };
+            } else {
+                confirmBtn.style.display = 'none';
+            }
+            
+            const modal = new bootstrap.Modal(modalEl);
+            modal.show();
+        }
+    </script>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>
-</html>
+</html>
+

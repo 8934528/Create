@@ -7,13 +7,12 @@ async function register() {
     const canvas = document.getElementById("canvas");
 
     if (!name || !email || !password) {
-        messageDiv.innerText = "Please fill in all fields.";
-        messageDiv.className = "mt-3 text-center text-danger";
+        showToast("Validation Error", "Please fill in all fields.", "danger");
         return;
     }
 
-    messageDiv.innerText = "Capturing face and registering...";
-    messageDiv.className = "mt-3 text-center text-info";
+    messageDiv.innerHTML = '<i class="fi fi-rr-loading me-2"></i> Capturing face and registering...';
+    messageDiv.className = "mt-4 text-center text-primary";
 
     // Capture frame from video
     canvas.width = video.videoWidth;
@@ -33,7 +32,7 @@ async function register() {
     };
 
     try {
-        const response = await fetch("http://localhost:5242/api/auth/register", { // Adjust port if needed
+        const response = await fetch("http://localhost:5242/api/auth/register", {
             method: "POST",
             body: JSON.stringify(payload),
             headers: { "Content-Type": "application/json" }
@@ -42,15 +41,29 @@ async function register() {
         const result = await response.json();
 
         if (response.ok) {
-            messageDiv.innerText = "Success: " + (result.message || "User registered!");
-            messageDiv.className = "mt-3 text-center text-success";
+            messageDiv.innerHTML = '<i class="fi fi-rr-check-circle me-2"></i> Registration Complete';
+            messageDiv.className = "mt-4 text-center text-success";
+            
+            showModal(
+                "Registration Successful", 
+                `<div class="text-center py-4">
+                    <i class="fi fi-rr-badge-check text-success" style="font-size: 5rem;"></i>
+                    <h3 class="mt-4 fw-bold">Welcome, ${name}!</h3>
+                    <p class="text-muted">Your biometric ID has been successfully enrolled in the system.</p>
+                </div>`,
+                () => { window.location.href = "/Index"; }
+            );
         } else {
-            messageDiv.innerText = "Error: " + (result || "Registration failed.");
-            messageDiv.className = "mt-3 text-center text-danger";
+            const errorMsg = result.message || result || "Registration failed.";
+            showToast("Registration Error", errorMsg, "danger");
+            messageDiv.innerHTML = '<i class="fi fi-rr-cross-circle me-2"></i> ' + errorMsg;
+            messageDiv.className = "mt-4 text-center text-danger";
         }
     } catch (error) {
         console.error("Error:", error);
-        messageDiv.innerText = "Error: Could not connect to the server.";
-        messageDiv.className = "mt-3 text-center text-danger";
+        showToast("Connection Error", "Could not connect to the server.", "danger");
+        messageDiv.innerHTML = '<i class="fi fi-rr-wifi-slash me-2"></i> Connection failed';
+        messageDiv.className = "mt-4 text-center text-danger";
     }
 }
+

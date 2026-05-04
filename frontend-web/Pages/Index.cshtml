@@ -4,61 +4,73 @@
     ViewData["Title"] = "Next-Gen Face Recognition";
 }
 
-<div class="hero-section text-center py-5 mb-5">
-    <div class="container py-5">
-        <h1 class="display-3 fw-bold mb-3" style="background: linear-gradient(135deg, #fff 0%, #94a3b8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-            Secure. Fast. Intelligent.
-        </h1>
-        <p class="lead mb-4 mx-auto" style="max-width: 700px; color: var(--muted);">
-            Experience the future of attendance tracking with real-time AI face recognition and advanced anti-spoofing technology.
-        </p>
-        <div class="d-flex justify-content-center gap-3">
-            <a asp-page="/Attendance" class="btn btn-primary btn-lg px-5 py-3 shadow-lg" style="background: var(--accent); border: none; border-radius: 12px; font-weight: 600;">
-                Launch Scanner
-            </a>
-            <a asp-page="/Register" class="btn btn-outline-light btn-lg px-5 py-3" style="border-radius: 12px; border-color: var(--border); font-weight: 600;">
-                Get Started
-            </a>
+<div class="hero-section bg-white border-bottom py-5">
+    <div class="container-fluid px-5">
+        <div class="row align-items-center py-5">
+            <div class="col-lg-6">
+                <h1 class="display-3 fw-bold mb-4" style="color: var(--primary);">
+                    Intelligent Attendance <br/> Made Simple.
+                </h1>
+                <p class="lead mb-5 text-muted" style="max-width: 600px;">
+                    Streamline your workflow with our advanced AI face recognition system. Secure, fast, and designed for modern teams.
+                </p>
+                <div class="d-flex gap-3">
+                    <a asp-page="/Attendance" class="btn btn-primary btn-lg px-5 py-3 btn-subtle shadow-sm">
+                        <i class="fi fi-rr-camera me-2"></i> Launch Scanner
+                    </a>
+                    <a asp-page="/Register" class="btn btn-outline-secondary btn-lg px-5 py-3 btn-subtle">
+                        Get Started
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center d-none d-lg-block">
+                <div class="p-5 bg-light rounded-circle d-inline-block shadow-sm">
+                    <i class="fi fi-rr-face-smile text-primary" style="font-size: 8rem;"></i>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-<div class="row g-4 py-5">
-    <div class="col-md-4">
-        <div class="feature-card p-4 h-100 rounded-4" style="background: var(--surface); border: 1px solid var(--border); backdrop-filter: blur(8px);">
-            <div class="feature-icon mb-3" style="font-size: 2.5rem;">🎭</div>
-            <h3 class="h4 fw-bold">AI Face ID</h3>
-            <p style="color: var(--muted);">Advanced neural networks identify faces in milliseconds with industry-leading accuracy.</p>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="feature-card p-4 h-100 rounded-4" style="background: var(--surface); border: 1px solid var(--border); backdrop-filter: blur(8px);">
-            <div class="feature-icon mb-3" style="font-size: 2.5rem;">🛡️</div>
-            <h3 class="h4 fw-bold">Anti-Spoofing</h3>
-            <p style="color: var(--muted);">Liveness detection ensures that only real people can check in, preventing photo fraud.</p>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="feature-card p-4 h-100 rounded-4" style="background: var(--surface); border: 1px solid var(--border); backdrop-filter: blur(8px);">
-            <div class="feature-icon mb-3" style="font-size: 2.5rem;">📊</div>
-            <h3 class="h4 fw-bold">Live Analytics</h3>
-            <p style="color: var(--muted);">Real-time dashboard provides instant insights into attendance trends and user data.</p>
+<div class="features-section py-5 bg-light">
+    <div class="container-fluid px-5">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="p-4 bg-white h-100 card-minimal border-0 shadow-sm">
+                    <div class="mb-3 text-primary">
+                        <i class="fi fi-rr-shield-check" style="font-size: 2rem;"></i>
+                    </div>
+                    <h3 class="h5 fw-bold">Secure Verification</h3>
+                    <p class="text-muted small mb-0">Advanced liveness detection prevents fraud and ensures only real people are tracked.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="p-4 bg-white h-100 card-minimal border-0 shadow-sm">
+                    <div class="mb-3 text-secondary">
+                        <i class="fi fi-rr-stats" style="font-size: 2rem;"></i>
+                    </div>
+                    <h3 class="h5 fw-bold">Real-time Analytics</h3>
+                    <p class="text-muted small mb-0">Get instant insights into your team's attendance patterns with our live dashboard.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="p-4 bg-white h-100 card-minimal border-0 shadow-sm">
+                    <div class="mb-3 text-info">
+                        <i class="fi fi-rr-cloud-upload" style="font-size: 2rem;"></i>
+                    </div>
+                    <h3 class="h5 fw-bold">Cloud Sync</h3>
+                    <p class="text-muted small mb-0">Your data is safely stored and accessible from any device, anywhere, anytime.</p>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
 <style>
     .hero-section {
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .feature-card {
-        transition: transform 0.3s ease, border-color 0.3s ease;
-    }
-    
-    .feature-card:hover {
-        transform: translateY(-10px);
-        border-color: var(--accent);
+        min-height: 70vh;
+        display: flex;
+        align-items: center;
     }
 </style>
+
