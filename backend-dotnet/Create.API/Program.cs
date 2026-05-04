@@ -76,6 +76,9 @@ var app = builder.Build();
 // Load face embeddings into memory cache on startup
 using (var scope = app.Services.CreateScope())
 {
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    await db.Database.MigrateAsync();
+    
     var cache = scope.ServiceProvider.GetRequiredService<IFaceCacheService>();
     await cache.LoadAsync();
 }
