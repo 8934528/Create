@@ -10,6 +10,9 @@ using BCrypt.Net;
 
 namespace Create.API.Controllers
 {
+    /// <summary>
+    /// Controller for handling user authentication and registration with face embeddings.
+    /// </summary>
     [ApiController]
     [Route("api/auth")]
     public class AuthController : ControllerBase
@@ -25,6 +28,11 @@ namespace Create.API.Controllers
             _cache = cache;
         }
 
+        /// <summary>
+        /// Registers a new user, hashes their password, and extracts/stores their facial embedding.
+        /// </summary>
+        /// <param name="dto">The registration data including user details and a face image.</param>
+        /// <returns>A status result indicating success or failure of the registration process.</returns>
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDto dto)
         {

@@ -12,6 +12,9 @@ using System.Threading.Tasks;
 
 namespace Create.API.Controllers
 {
+    /// <summary>
+    /// Controller for managing attendance records and processing real-time face scans.
+    /// </summary>
     [ApiController]
     [Route("api/attendance")]
     public class AttendanceController : ControllerBase
@@ -33,7 +36,12 @@ namespace Create.API.Controllers
             _hub = hub;
         }
 
-        // POST /api/attendance/scan
+        /// <summary>
+        /// Processes a real-time face scan, verifies it against stored face embeddings, 
+        /// and records attendance if a match is found.
+        /// </summary>
+        /// <param name="dto">The scan data containing the current image, previous image (for anti-spoofing), and target Event ID.</param>
+        /// <returns>A status result indicating success or failure of the recognition and logging process.</returns>
         [HttpPost("scan")]
         public async Task<IActionResult> Scan([FromBody] ScanDto dto)
         {
@@ -144,7 +152,10 @@ namespace Create.API.Controllers
             return MathF.Sqrt(sum);
         }
 
-        // GET /api/attendance/report  — Admin dashboard analytics
+        /// <summary>
+        /// Retrieves high-level attendance analytics for the administrative dashboard.
+        /// </summary>
+        /// <returns>Statistics including total users, total attendance, and the last 7 days of attendance trends.</returns>
         [HttpGet("report")]
         public async Task<IActionResult> GetReport()
         {

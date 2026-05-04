@@ -1,77 +1,113 @@
-# Create
+# 🚀 Create: Smart Attendance System
 
-## features
+> **Next-Gen Event, Work, and Class Registration powered by AI Face Recognition.**
 
-## SetUp Environment Variables
+[![.NET 8](https://img.shields.io/badge/.NET-8.0-512bd4?style=for-the-badge&logo=dotnet)](https://dotnet.microsoft.com/download)
+[![Python 3.10](https://img.shields.io/badge/Python-3.10-3776ab?style=for-the-badge&logo=python)](https://www.python.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-336791?style=for-the-badge&logo=postgresql)](https://www.postgresql.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com/)
 
-events, work, class smart register collection system using face id
+---
 
-create the `.env` file copy and pste the following:
+## Key Features
 
-        DB_HOST=localhost
-        DB_PORT=5432
-        DB_USER=postgres
-        DB_PASSWORD=[put your postgres password]
-        DB_NAME=create_db
+- **AI Face ID Registration**: Securely register users using advanced facial embedding technology.
+- **Real-time Attendance**: High-speed, contactless check-in using live camera feeds.
+- **Anti-Spoofing**: Built-in liveness detection to prevent photo/video spoofing attacks.
+- **Analytics Dashboard**: Comprehensive insights into attendance trends and event participation.
+- **High Performance**: Powered by `pgvector` for lightning-fast similarity searches in PostgreSQL.
 
-        JWT_SECRET=super_secret_key
-        AI_SERVICE_URL=http://localhost:8000
+---
 
-## run
+## Technology Stack
 
-1. Setup the Database (PostgreSQL)
-Ensure PostgreSQL is running on your machine, then run these commands in a terminal or pgAdmin:
+| Component | Technology | Role |
+| :--- | :--- | :--- |
+| **Backend** | ASP.NET Core 8 | RESTful API, Business Logic, Security |
+| **AI Engine** | Python + FastAPI | DeepFace, OpenCV, Face Recognition |
+| **Database** | PostgreSQL + pgvector | Persistent Storage, Vector Embeddings |
+| **Frontend** | Razor Pages + JS | User Interface & Real-time Scanner |
+| **Auth** | JWT (JSON Web Tokens) | Secure Stateless Authentication |
 
-        sql
-        -- 1. Create the database
-        CREATE DATABASE create_db;
-        -- 2. Connect to create_db and enable the vector extension
-        -- (This must be done inside the create_db database)
+---
 
-        CREATE EXTENSION IF NOT EXISTS vector;
+## Getting Started
 
-    If you get an error that "vector" is not available, you need to install pgvector for your PostgreSQL version.
+### Prerequisites
 
-2. Run the AI Service (Python)
+1. **.NET 8 SDK**
+2. **Python 3.10+**
+3. **PostgreSQL 15+** with the **pgvector** extension installed.
 
-    You already have this running. It provides the face embedding logic on `http://localhost:8000`.
+### Environment Setup
 
-3. Run the Backend API (.NET)
+Create a `.env` file in the root directory and configure the following:
 
-    Open a new terminal and run:
+```env
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=your_password
+DB_NAME=create_db
 
-        bash
-        cd backend-dotnet/Create.API
-        dotnet run
-        ```
-        This will start the API at `http://localhost:5242`. You can view the Swagger documentation at `http://localhost:5242/swagger`.
+JWT_SECRET=your_ultra_secure_long_secret_key
+AI_SERVICE_URL=http://localhost:8000
+```
 
-4. Run the Frontend (Web)
+### Installation & Execution
 
-- make sure that you have an extension of pgvector installed on your postgresql server run
+#### 1. Database Initialization
 
-        sql
-        CREATE EXTENSION IF NOT EXISTS vector;
+```sql
+CREATE DATABASE create_db;
+-- Connect to create_db
+CREATE EXTENSION IF NOT EXISTS vector;
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+```
 
-- after that you can run the frontend
+#### 2. Run the AI Service
 
-        Open another terminal and run:
+```bash
+cd ai-service
+pip install -r requirements.txt
+cd app
+python main.py
+```
 
-        bash
-        cd frontend-web
-        dotnet run
-        
+#### 3. Run the Backend API
 
-    This will start the website. Look for the `http://localhost:5200` link in the output.
+```bash
+cd backend-dotnet/Create.API
+dotnet run
+```
+*Swagger UI available at: `http://localhost:5242/swagger`*
 
-## Access the App
+#### 4. Run the Web Frontend
 
-Click this link once the frontend is running: `http://localhost:5200`
+```bash
+cd frontend-web
+dotnet run
+```
 
-You can then navigate to:
+*Access the application at: `http://localhost:5200`*
 
-- Register to add a new user with their face.
-- Attendance to start the real-time face scanner.
-- Dashboard to view attendance analytics.
+---
 
-## contribution
+## Architecture Overview
+
+The system follows a **Clean Architecture** pattern, ensuring high maintainability and scalability:
+
+- **Frontend**: Captures video frames and sends them to the Backend.
+- **Backend**: Acts as an orchestrator, handling authentication, business rules, and database interactions.
+- **AI Service**: Dedicated Python microservice for heavy-lift facial recognition and anti-spoofing logic.
+- **Database**: Stores user data and high-dimensional face embeddings for similarity matching.
+
+---
+
+## Contribution
+
+Contributions are welcome! Please see the [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+## License
+
+This project is licensed under the MIT License.

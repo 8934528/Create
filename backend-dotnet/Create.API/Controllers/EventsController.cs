@@ -11,6 +11,9 @@ using System.Threading.Tasks;
 
 namespace Create.API.Controllers
 {
+    /// <summary>
+    /// Controller for managing events and retrieving event-specific attendance reports.
+    /// </summary>
     [ApiController]
     [Route("api/events")]
     public class EventsController : ControllerBase
@@ -22,7 +25,10 @@ namespace Create.API.Controllers
             _db = db;
         }
 
-        // GET /api/events
+        /// <summary>
+        /// Retrieves a list of all events, ordered by their start time.
+        /// </summary>
+        /// <returns>A list of event entities.</returns>
         [HttpGet]
         public async Task<IActionResult> GetEvents()
         {
@@ -32,7 +38,11 @@ namespace Create.API.Controllers
             return Ok(events);
         }
 
-        // POST /api/events
+        /// <summary>
+        /// Creates a new event for attendance tracking.
+        /// </summary>
+        /// <param name="dto">The event data transfer object.</param>
+        /// <returns>The created event entity.</returns>
         [HttpPost]
         public async Task<IActionResult> CreateEvent([FromBody] Create.Application.DTOs.EventDto dto)
         {
@@ -51,7 +61,11 @@ namespace Create.API.Controllers
             return Ok(newEvent);
         }
 
-        // GET /api/events/{id}/attendance
+        /// <summary>
+        /// Retrieves the attendance list for a specific event.
+        /// </summary>
+        /// <param name="id">The unique identifier of the event.</param>
+        /// <returns>A list of attendance records with user details.</returns>
         [HttpGet("{id}/attendance")]
         public async Task<IActionResult> GetAttendance(Guid id)
         {
@@ -73,7 +87,11 @@ namespace Create.API.Controllers
             return Ok(attendances);
         }
 
-        // GET /api/events/{id}/export-pdf
+        /// <summary>
+        /// Generates and exports a professional PDF attendance report for a specific event.
+        /// </summary>
+        /// <param name="id">The unique identifier of the event.</param>
+        /// <returns>A PDF file containing the attendance report.</returns>
         [HttpGet("{id}/export-pdf")]
         public async Task<IActionResult> ExportPdf(Guid id)
         {
